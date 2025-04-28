@@ -200,4 +200,4 @@ There is a lot of room for CSS/UI improvements. It's mostly responsive, but some
 ## Notes
 
 - The map background uses the free tier of maptiler. If the request limit is hit, it will default to the demo map. The demo map has virtually no detail so it will look like a solid background.
-- Due to being a takehome project, this project doesn't have full test coverage, ad-hoc testing and probably contains bugs around edges cases. More testing in general is needed.
+- This project doesn't have full test coverage, ad-hoc testing and probably contains bugs around edges cases. More testing in general is needed.
