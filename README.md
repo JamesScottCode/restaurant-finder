@@ -113,8 +113,6 @@ I chose maptiler because it's open-source and free within their limits. It pairs
 
 ### Foursquare API
 
-It was suggested in the PDF document, so I figured they wanted candidates to use this specifically if they could.
-
 It does not use traditional pagination, so it requires a little bit of a setup for this kind of behavior.
 
 [Foursquare Places API](https://docs.foursquare.com/developer/reference/places-api-overview)
