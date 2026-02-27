@@ -1,7 +1,8 @@
 import { FoursquarePlacesResponse } from '../types/places';
 import { createLL } from '../utils/geo';
-import { fsqFields } from '../consts/foursquare';
 import { useLayoutStore } from '../stores/layoutStore';
+
+import { fsqFields } from '../consts/foursquare';
 
 export async function rawFetchPlaces(
   query: string,
@@ -26,31 +27,25 @@ export async function rawFetchPlaces(
     throw new Error(errorMsg);
   }
 
-  // build the ll from whatever coords you passed in
   const { latitude, longitude } = coords;
   const ll = createLL(latitude, longitude);
 
-  const params: Record<string, string> = {
+  const searchParams = new URLSearchParams({
     query,
     ll,
     limit: String(limit),
-  };
-  if (radius) params.radius = String(radius);
-  if (cursor) params.cursor = cursor;
-  if (sort) params.sort = sort;
-
-  const queryString = new URLSearchParams(params).toString();
-  const API_URL = `https://api.foursquare.com/v3/places/search?${queryString}&fields=${fsqFields}`;
-
-  const response = await fetch(API_URL, {
-    headers: {
-      Authorization: API_KEY,
-      Accept: 'application/json',
-    },
   });
 
+  if (radius) searchParams.set('radius', String(radius));
+  if (cursor) searchParams.set('cursor', cursor);
+  if (sort) searchParams.set('sort', sort);
+  searchParams.set('fields', fsqFields);
+  const API_URL = `http://localhost:8787/places/search?${searchParams.toString()}`;
+  const response = await fetch(API_URL);
+
   if (!response.ok) {
-    const errorMsg = `Failed to fetch places: ${response.status} ${response.statusText}`;
+    const body = await response.text().catch(() => '');
+    const errorMsg = `Failed to fetch places: ${response.status} ${response.statusText}${body ? ` — ${body}` : ''}`;
     useLayoutStore.getState().openToast({
       message: errorMsg,
       visible: true,
@@ -59,7 +54,8 @@ export async function rawFetchPlaces(
     throw new Error(errorMsg);
   }
 
-  const data = (await response.json()) as FoursquarePlacesResponse;
+  const data = (await response.json()) as any;
+
   let nextCursor: string | undefined;
   const linkHeader = response.headers.get('link');
   if (linkHeader) {
@@ -67,7 +63,34 @@ export async function rawFetchPlaces(
     if (match) nextCursor = match[1];
   }
 
-  return { results: data.results, nextCursor };
+  const results = (data.results ?? []).map((r: any) => ({
+    fsq_id: r.fsq_place_id ?? r.id ?? '',
+    name: r.name ?? '',
+    categories: r.categories ?? [],
+    distance: r.distance ?? null,
+    location: r.location ?? {},
+    photos: r.photos ?? [],
+    rating: r.rating ?? null,
+    price: r.price ?? null,
+    hours: r.hours ?? null,
+    hours_popular: r.hours_popular ?? null,
+    description: r.description ?? null,
+    tel: r.tel ?? null,
+    website: r.website ?? null,
+    social_media: r.social_media ?? null,
+    email: r.email ?? null,
+    tips: r.tips ?? [],
+    isOpenNow: r.hours?.open_now ?? null,
+
+    geocodes: {
+      main: {
+        latitude: r.latitude ?? null,
+        longitude: r.longitude ?? null,
+      },
+    },
+  }));
+
+  return { results, nextCursor };
 }
 
 let lastCall = 0;
@@ -82,11 +105,11 @@ export async function safeFetchPlaces(
   sort?: string,
 ) {
   const now = Date.now();
-  if (now - lastCall < 500) {
+  if (now - lastCall < 800) {
     throw new Error('Please wait before making another request.');
   }
   timestamps = timestamps.filter((t) => t > now - 60_000);
-  if (timestamps.length >= 50) {
+  if (timestamps.length >= 30) {
     throw new Error('Rate limit exceeded. Try again later.');
   }
   lastCall = now;

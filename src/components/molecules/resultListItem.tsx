@@ -165,7 +165,7 @@ const ResultListItem: FC<ResultListItemProps> = React.memo(
         <InnerContainer $isHovered={isHovered}>
           <TitleRow>
             <Title>{name ?? 'unnamed'}</Title>
-            <OpenStatus closedBucket={closed_bucket} />
+            {/* <OpenStatus closedBucket={closed_bucket} /> */}
           </TitleRow>
 
           <TitleRow>
