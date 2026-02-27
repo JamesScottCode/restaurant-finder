@@ -15,18 +15,6 @@ export async function rawFetchPlaces(
   results: FoursquarePlacesResponse['results'];
   nextCursor?: string;
 }> {
-  const API_KEY = process.env.REACT_APP_FOURSQUARE_API_KEY;
-  if (!API_KEY) {
-    const errorMsg =
-      'Missing Foursquare API Key. Please set REACT_APP_FOURSQUARE_API_KEY in your environment.';
-    useLayoutStore.getState().openToast({
-      message: errorMsg,
-      visible: true,
-      isError: true,
-    });
-    throw new Error(errorMsg);
-  }
-
   const { latitude, longitude } = coords;
   const ll = createLL(latitude, longitude);
 
@@ -40,7 +28,14 @@ export async function rawFetchPlaces(
   if (cursor) searchParams.set('cursor', cursor);
   if (sort) searchParams.set('sort', sort);
   searchParams.set('fields', fsqFields);
-  const API_URL = `http://localhost:8787/places/search?${searchParams.toString()}`;
+
+  const PLACES_BASE =
+    process.env.REACT_APP_NODE_ENV === 'development'
+      ? 'http://localhost:8787'
+      : 'https://restaurant-finder-tokyo.netlify.app';
+
+  const API_URL = `${PLACES_BASE}/.netlify/functions/places-search?${searchParams.toString()}`;
+
   const response = await fetch(API_URL);
 
   if (!response.ok) {
