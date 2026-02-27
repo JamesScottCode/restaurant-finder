@@ -8,7 +8,6 @@ import { Category, Place } from '../../types/places';
 import Hours from '../atoms/hours';
 import Tag from '../atoms/tag';
 import StarRating from '../atoms/starRating';
-import OpenStatus from '../atoms/openStatus';
 import ItemDetails from '../organisms/itemDetails';
 
 const OuterContainer = styled.div<{ $isToolTip?: boolean }>`
@@ -127,7 +126,6 @@ const ResultListItem: FC<ResultListItemProps> = React.memo(
       distance,
       categories = [],
       hours,
-      closed_bucket,
       photos,
     } = data;
     const isHovered = usePlacesStore((s) => s.hoveredRestaurantId === fsq_id);
