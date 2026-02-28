@@ -1,6 +1,7 @@
 Restaurant Finder
 
 A demo can be found [here](https://restaurant-finder-tokyo.netlify.app/ 'Go to demo').
+TODO: Infinite scrolling broke when Foursquare deprecated their API, will work on a fix in the future.
 
 <p align="center">
    <img src="./public/cl-rf-screenshot.png" alt="App Screenshot" height="300" width="500" />
