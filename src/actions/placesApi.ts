@@ -54,8 +54,14 @@ export async function rawFetchPlaces(
   let nextCursor: string | undefined;
   const linkHeader = response.headers.get('link');
   if (linkHeader) {
-    const match = linkHeader.match(/cursor=([^&>]+)/);
-    if (match) nextCursor = match[1];
+    const match = linkHeader.match(/cursor=([^&>;\s]+)/);
+    if (match) nextCursor = match[1].trim();
+  }
+  if (!nextCursor && data.context?.next_cursor != null) {
+    nextCursor = String(data.context.next_cursor);
+  }
+  if (!nextCursor && data.next_cursor != null) {
+    nextCursor = String(data.next_cursor);
   }
 
   const results = (data.results ?? []).map((r: any) => ({

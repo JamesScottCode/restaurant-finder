@@ -42,15 +42,29 @@ export async function handler(event) {
       },
     });
 
-    const text = await r.text();
+    let body = await r.text();
+    const headers = {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Expose-Headers': 'Link',
+    };
+    const link = r.headers.get('link');
+    if (link) {
+      headers['Link'] = link;
+      const cursorMatch = link.match(/cursor=([^&>;\s]+)/);
+      if (cursorMatch) {
+        try {
+          const data = JSON.parse(body);
+          data.next_cursor = cursorMatch[1].trim();
+          body = JSON.stringify(data);
+        } catch (_) {}
+      }
+    }
 
     return {
       statusCode: r.status,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: text,
+      headers,
+      body,
     };
   } catch (err) {
     return {

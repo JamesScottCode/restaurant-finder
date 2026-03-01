@@ -97,17 +97,26 @@ const ResultsList: React.FC = React.memo(() => {
     }
   }, [selectedFsqId]);
 
-  // 4) infinite scroll
+  // 4) infinite scroll (root = scroll container so observer fires when sentinel is visible in the list)
   const infiniteScrollEnabled = useDelayedToggle(false, 2000);
-  const sentinelRef = useInfiniteScroll(
+  const { sentinelRef, checkNow } = useInfiniteScroll(
     () => {
-      if (nextCursor && !loading) {
-        fetchPlaces(nextCursor);
+      const state = usePlacesStore.getState();
+      if (state.nextCursor && !state.loading) {
+        fetchPlaces(state.nextCursor);
       }
     },
     infiniteScrollEnabled,
-    { delay: 2000, threshold: 0.1 },
+    { delay: 2000, threshold: 0.1, root: containerRef },
   );
+
+  // On large screens the sentinel can stay in view after a load; observer only fires on *change*.
+  // Re-check when a batch finishes so we load more until the list fills the space.
+  useEffect(() => {
+    if (!loading && nextCursor) {
+      checkNow();
+    }
+  }, [loading, nextCursor, checkNow]);
 
   if (restaurants.length === 0) return null;
 
